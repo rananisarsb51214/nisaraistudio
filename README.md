@@ -72,4 +72,4 @@ translations {
 ‎  "sourceLanguageCode": "en"
 ‎  "targetLanguageCode": "it",
 ‎  "model": "projects/PROJECT_ID/locations/REGION_NAME/models/general/translation-llm"
-‎}https://docs.cloud.google.com/resource-manager/docs/creating-managing-projects
+‎}https://docs.cloud.google.com/resource-manager/docs/creating-managing-projectshttps://github.com/rananisarsb51214-web
