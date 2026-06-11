@@ -104,4 +104,118 @@ export default defineConfig(({ mode }) => {
       ]
     }
   }
-})
+})PRODUCTION OPTIMIZATION TASK
+
+Analyze the entire codebase and eliminate all Firestore collection-scan patterns that can cause performance degradation at scale.
+
+OBJECTIVES
+
+1. Detect all queries that calculate counts by reading collections:
+   - unread messages
+   - total contacts
+   - total users
+   - total leads
+   - total orders
+   - total revenue records
+   - dashboard statistics
+   - analytics counters
+
+2. Replace collection counting logic with aggregate statistics documents.
+
+TARGET STRUCTURE
+
+system/
+  stats
+
+Example:
+
+{
+  "unreadContacts": 0,
+  "totalContacts": 0,
+  "totalUsers": 0,
+  "totalLeads": 0,
+  "totalOrders": 0,
+  "totalRevenue": 0,
+  "updatedAt": Timestamp
+}
+
+REQUIREMENTS
+
+- Remove expensive collection scans
+- Remove client-side counting
+- Remove full collection reads used only for totals
+- Use atomic Firestore increment operations
+- Preserve existing functionality
+- Maintain backward compatibility
+- Add TypeScript typings
+- Add error handling
+- Add logging
+- Add rollback protection
+
+IMPLEMENTATION RULES
+
+When a new record is created:
+
+await statsRef.update({
+  totalContacts: increment(1)
+});
+
+When a record is deleted:
+
+await statsRef.update({
+  totalContacts: increment(-1)
+});
+
+When a message becomes unread:
+
+await statsRef.update({
+  unreadContacts: increment(1)
+});
+
+When a message becomes read:
+
+await statsRef.update({
+  unreadContacts: increment(-1)
+});
+
+DASHBOARD RULE
+
+Dashboard widgets must read only:
+
+system/stats
+
+and never:
+
+contacts/*
+users/*
+orders/*
+analytics/*
+
+for counting purposes.
+
+ADD
+
+- Firestore transaction protection
+- Cloud Function triggers
+- Retry mechanism
+- Structured logs
+- Monitoring metrics
+- Cost optimization comments
+- Security rule validation
+
+VERIFY
+
+Generate a report showing:
+
+- Queries removed
+- Collection scans removed
+- Estimated read reduction
+- Estimated cost reduction
+- Performance improvement
+- Scaling capacity improvement
+
+SUCCESS CRITERIA
+
+Dashboard statistics load using a single Firestore document read regardless of whether the database contains 100, 10,000, 100,000, or 1,000,000 records.
+
+Generate complete production-ready code modifications with file-by-file patches and rollback instructions.
