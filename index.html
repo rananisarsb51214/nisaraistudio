@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="description" content="Nisar AI Image Creator — create, manage and monetize AI visuals with stock discovery and affiliate-ready links." />
+  <title>Nisar AI Image Creator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{boxShadow:{glow:'0 0 50px rgba(139,92,246,.18)'}}}}</script>
+</head>
+<body class="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-violet-500/30">
+<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,.16),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,.10),transparent_35%)]">
+<header class="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+    <div class="flex items-center gap-3"><div class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 font-black">N</div><div><div class="font-bold">Nisar AI Image Creator</div><div class="text-xs text-zinc-500">Create • Discover • Monetize</div></div></div>
+    <div class="flex gap-2"><button id="connectBtn" class="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">Connect</button><button id="themeBtn" class="rounded-lg border border-white/10 px-3 py-2 text-sm">☼</button></div>
+  </div>
+</header>
+<main class="mx-auto max-w-7xl px-4 py-8">
+  <section class="mb-8 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
+    <div class="rounded-3xl border border-white/10 bg-white/[.035] p-6 shadow-glow">
+      <div class="mb-5 flex items-center justify-between"><div><h1 class="text-2xl font-bold">AI Image Studio</h1><p class="mt-1 text-sm text-zinc-400">Turn a prompt into campaign-ready visuals.</p></div><span class="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">Production UI</span></div>
+      <label class="text-sm text-zinc-400">Prompt</label>
+      <textarea id="prompt" class="mt-2 h-32 w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-4 outline-none focus:border-violet-500" placeholder="A premium futuristic product campaign, cinematic studio lighting, clean composition..."></textarea>
+      <div class="mt-4 grid gap-3 sm:grid-cols-3"><select id="ratio" class="rounded-xl border border-white/10 bg-zinc-900 p-3"><option value="1:1">Square 1:1</option><option value="16:9">Landscape 16:9</option><option value="9:16">Portrait 9:16</option></select><select id="style" class="rounded-xl border border-white/10 bg-zinc-900 p-3"><option>Photorealistic</option><option>Cinematic</option><option>3D Render</option><option>Illustration</option><option>Minimal</option></select><select id="quality" class="rounded-xl border border-white/10 bg-zinc-900 p-3"><option>Standard</option><option>High</option></select></div>
+      <button id="generate" class="mt-4 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 font-semibold hover:opacity-90">✨ Create Image</button>
+      <p id="status" class="mt-3 text-center text-xs text-zinc-500">Connect an image-generation API in Vercel to enable real generation.</p>
+    </div>
+    <div class="rounded-3xl border border-white/10 bg-white/[.035] p-6"><h2 class="font-semibold">Connected services</h2><div class="mt-4 space-y-3" id="services"></div><div class="mt-5 rounded-2xl border border-violet-400/20 bg-violet-400/5 p-4 text-sm text-zinc-300"><b class="text-violet-300">Affiliate-ready</b><br/>Stock results can carry your approved partner/affiliate URL. Add your provider credentials in Vercel environment variables — never put secret keys in this HTML.</div></div>
+  </section>
+  <section class="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div><div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">Creative Library</h2><button id="clear" class="text-xs text-zinc-500 hover:text-white">Clear</button></div><div id="gallery" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"></div></div>
+    <aside class="rounded-3xl border border-white/10 bg-white/[.035] p-5"><h3 class="font-semibold">Stock discovery</h3><p class="mt-1 text-xs text-zinc-500">Search licensed stock providers and open through your configured partner link.</p><input id="stockQuery" class="mt-4 w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm outline-none" placeholder="e.g. futuristic office"/><button id="stockSearch" class="mt-2 w-full rounded-xl border border-white/10 p-3 text-sm hover:bg-white/5">Search Stock</button><div id="stockResults" class="mt-4 space-y-2"></div><div class="mt-5 border-t border-white/10 pt-4 text-xs text-zinc-500">Provider adapters: Shutterstock • Unsplash • Pexels. Affiliate tracking is disabled until your own partner IDs/links are configured.</div></aside>
+  </section>
+</main>
+</div>
+<script>
+const $=s=>document.querySelector(s); const KEY='nisar-ai-images';
+const services=[['AI Generator','/api/generate','violet'],['Shutterstock','/api/stock/shutterstock','pink'],['Unsplash','/api/stock/unsplash','blue'],['Pexels','/api/stock/pexels','emerald']];
+function renderServices(){ $('#services').innerHTML=services.map(([n,u,c])=>`<div class="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 p-3"><div class="flex items-center gap-3"><span class="h-2.5 w-2.5 rounded-full bg-${c}-400"></span><span class="text-sm">${n}</span></div><span class="text-xs text-zinc-500">API adapter</span></div>`).join('') }
+function load(){let a=JSON.parse(localStorage.getItem(KEY)||'[]');$('#gallery').innerHTML=a.map(x=>`<article class="overflow-hidden rounded-2xl border border-white/10 bg-black/20"><img src="${x.url}" class="aspect-square w-full object-cover" loading="lazy"><div class="p-3"><p class="line-clamp-2 text-sm">${esc(x.prompt)}</p><div class="mt-3 flex gap-2"><a class="flex-1 rounded-lg border border-white/10 px-3 py-2 text-center text-xs hover:bg-white/5" href="${x.url}" target="_blank" rel="noopener">Open</a><button onclick="del('${x.id}')" class="rounded-lg border border-white/10 px-3 py-2 text-xs">Delete</button></div></div></article>`).join('')||`<div class="col-span-full rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-zinc-500">Your generated images will appear here.</div>`}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}; function del(id){localStorage.setItem(KEY,JSON.stringify(JSON.parse(localStorage.getItem(KEY)||'[]').filter(x=>x.id!==id)));load()}
+$('#generate').onclick=async()=>{const prompt=$('#prompt').value.trim();if(!prompt){$('#status').textContent='Enter a prompt first.';return} $('#generate').disabled=true;$('#status').textContent='Generating…';try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,ratio:$('#ratio').value,style:$('#style').value,quality:$('#quality').value})});if(!r.ok)throw Error();const d=await r.json();if(!d.url)throw Error();let a=JSON.parse(localStorage.getItem(KEY)||'[]');a.unshift({id:crypto.randomUUID(),url:d.url,prompt});localStorage.setItem(KEY,JSON.stringify(a));load();$('#status').textContent='Image created successfully.'}catch(e){$('#status').textContent='Generation API is not configured. Add the required Vercel environment variable and deploy.'}finally{$('#generate').disabled=false}};
+$('#stockSearch').onclick=async()=>{let q=$('#stockQuery').value.trim();if(!q)return;$('#stockResults').innerHTML='<div class="text-xs text-zinc-500">Searching…</div>';try{let r=await fetch('/api/stock/search?q='+encodeURIComponent(q));let d=await r.json();$('#stockResults').innerHTML=(d.results||[]).slice(0,6).map(x=>`<a href="${x.url}" target="_blank" rel="noopener sponsored" class="block rounded-xl border border-white/10 p-3 hover:bg-white/5"><div class="text-sm font-medium">${esc(x.title||'Stock result')}</div><div class="mt-1 text-xs text-zinc-500">${esc(x.provider||'Stock provider')}</div></a>`).join('')||'<div class="text-xs text-zinc-500">No configured results.</div>'}catch(e){$('#stockResults').innerHTML='<div class="text-xs text-zinc-500">Stock adapter not configured yet.</div>'}};
+$('#clear').onclick=()=>{localStorage.removeItem(KEY);load()};$('#connectBtn').onclick=()=>alert('Connect your API providers in Vercel → Project Settings → Environment Variables. Secrets must stay server-side.');$('#themeBtn').onclick=()=>document.documentElement.classList.toggle('dark');renderServices();load();
+</script>
+</body></html>
