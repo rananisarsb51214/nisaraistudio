@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="description" content="Nisar AI Video Studio — secure text-to-video generation powered by Veo." />
+  <title>Nisar AI Video Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-zinc-950 text-zinc-100">
+<div class="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,.18),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,.10),transparent_35%)]">
+<header class="border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+    <div class="flex items-center gap-3">
+      <div class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 font-black">N</div>
+      <div><div class="font-bold">Nisar AI Video Studio</div><div class="text-xs text-zinc-500">Text → Video</div></div>
+    </div>
+    <a href="/" class="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">Image Studio</a>
+  </div>
+</header>
+
+<main class="mx-auto max-w-7xl px-4 py-8">
+  <section class="grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
+    <div class="rounded-3xl border border-white/10 bg-white/[.035] p-6 shadow-2xl shadow-violet-950/20">
+      <div class="mb-6 flex items-start justify-between gap-4">
+        <div><h1 class="text-2xl font-bold">Create a video</h1><p class="mt-1 text-sm text-zinc-400">Describe the scene, movement, camera and mood.</p></div>
+        <span class="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">V1 • Text → Video</span>
+      </div>
+
+      <label for="prompt" class="text-sm font-medium text-zinc-300">Prompt</label>
+      <textarea id="prompt" maxlength="2000" class="mt-2 h-40 w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-4 text-sm outline-none transition focus:border-violet-500" placeholder="A cinematic drone shot over a futuristic city at sunset, glowing buildings, slow camera movement, realistic lighting, atmospheric clouds..."></textarea>
+      <div class="mt-2 flex justify-between text-xs text-zinc-600"><span>Be specific about subject + action + camera + style.</span><span id="count">0/2000</span></div>
+
+      <div class="mt-5 grid gap-3 sm:grid-cols-3">
+        <label class="text-xs text-zinc-500">Style<select id="style" class="mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 p-3 text-sm text-zinc-100"><option>Cinematic</option><option>Photorealistic</option><option>3D</option><option>Anime</option><option>Documentary</option></select></label>
+        <label class="text-xs text-zinc-500">Duration<select id="duration" class="mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 p-3 text-sm text-zinc-100"><option value="4">4 seconds</option><option value="6">6 seconds</option><option value="8" selected>8 seconds</option></select></label>
+        <label class="text-xs text-zinc-500">Aspect ratio<select id="ratio" class="mt-2 w-full rounded-xl border border-white/10 bg-zinc-900 p-3 text-sm text-zinc-100"><option value="9:16" selected>Portrait 9:16</option><option value="16:9">Landscape 16:9</option></select></label>
+      </div>
+
+      <button id="generate" class="mt-5 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3.5 font-semibold hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">✨ Generate Video</button>
+      <p id="status" class="mt-3 min-h-5 text-center text-xs text-zinc-500">Ready.</p>
+    </div>
+
+    <aside class="rounded-3xl border border-white/10 bg-white/[.035] p-6">
+      <h2 class="font-semibold">Video preview</h2>
+      <div id="preview" class="mt-4 grid aspect-video place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-center text-sm text-zinc-600">
+        Your generated video will appear here.
+      </div>
+      <a id="download" class="mt-4 hidden w-full rounded-xl border border-white/10 px-4 py-3 text-center text-sm hover:bg-white/5" download="nisar-ai-video.mp4">Open / Download Video</a>
+      <div class="mt-6 rounded-2xl border border-violet-400/20 bg-violet-400/5 p-4 text-xs leading-5 text-zinc-400">
+        <b class="text-violet-300">Server-side security</b><br />
+        The Gemini API key is used only by the server endpoint. It is never placed in browser JavaScript.
+      </div>
+    </aside>
+  </section>
+
+  <section class="mt-8 rounded-3xl border border-white/10 bg-white/[.035] p-6">
+    <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-bold">My Creations</h2><button id="clear" class="text-xs text-zinc-500 hover:text-white">Clear history</button></div>
+    <div id="history" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+  </section>
+</main>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+const KEY = 'nisar-ai-video-history';
+let activeTimer = null;
+
+function esc(s) { return String(s).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m])); }
+function loadHistory() {
+  const items = JSON.parse(localStorage.getItem(KEY) || '[]');
+  $('#history').innerHTML = items.map(x => `<article class="overflow-hidden rounded-2xl border border-white/10 bg-black/20"><video src="${esc(x.url)}" controls preload="metadata" class="aspect-video w-full bg-black"></video><div class="p-3"><p class="line-clamp-3 text-sm text-zinc-300">${esc(x.prompt)}</p><p class="mt-2 text-xs text-zinc-600">${esc(x.ratio)} • ${esc(x.duration)}s</p></div></article>`).join('') || '<div class="col-span-full rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-zinc-600">No generated videos yet.</div>';
+}
+$('#prompt').addEventListener('input', () => $('#count').textContent = `${$('#prompt').value.length}/2000`);
+$('#clear').onclick = () => { localStorage.removeItem(KEY); loadHistory(); };
+
+async function poll(operation) {
+  const maxAttempts = 60;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(r => setTimeout(r, 10000));
+    const r = await fetch('/api/video/status?operation=' + encodeURIComponent(operation), { cache: 'no-store' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Unable to check generation status.');
+    if (d.done && d.downloadUrl) return d.downloadUrl;
+    $('#status').textContent = `Generating video… ${Math.min(99, Math.round(((attempt + 1) / maxAttempts) * 100))}%`;
+  }
+  throw new Error('Generation is taking longer than expected. Check My Creations later or try again.');
+}
+
+$('#generate').onclick = async () => {
+  const prompt = $('#prompt').value.trim();
+  if (prompt.length < 3) { $('#status').textContent = 'Enter a more detailed prompt first.'; return; }
+  if (activeTimer) clearTimeout(activeTimer);
+  $('#generate').disabled = true;
+  $('#preview').innerHTML = '<div class="animate-pulse">Starting generation…</div>';
+  $('#download').classList.add('hidden');
+  $('#status').textContent = 'Starting secure video generation…';
+  try {
+    const r = await fetch('/api/video/generate', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ prompt, style: $('#style').value, duration: Number($('#duration').value), ratio: $('#ratio').value }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Could not start generation.');
+    $('#status').textContent = 'Generation started. This can take a few minutes…';
+    const url = await poll(d.operation);
+    $('#preview').innerHTML = `<video src="${esc(url)}" controls autoplay muted class="h-full w-full object-contain"></video>`;
+    $('#download').href = url;
+    $('#download').classList.remove('hidden');
+    const items = JSON.parse(localStorage.getItem(KEY) || '[]');
+    items.unshift({ id: crypto.randomUUID(), url, prompt, ratio: $('#ratio').value, duration: Number($('#duration').value) });
+    localStorage.setItem(KEY, JSON.stringify(items.slice(0, 12)));
+    loadHistory();
+    $('#status').textContent = 'Video generated successfully.';
+  } catch (e) {
+    console.error(e);
+    $('#preview').textContent = 'Generation failed. See the status message below.';
+    $('#status').textContent = e.message || 'Generation failed.';
+  } finally {
+    $('#generate').disabled = false;
+  }
+};
+loadHistory();
+</script>
+</body>
+</html>
