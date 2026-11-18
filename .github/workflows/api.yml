@@ -1,7 +1,7 @@
-name: Nexus API CI
+name: NISAR AI STUDIO API CI
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/**"]
   pull_request:
     branches: [main]
 jobs:
@@ -18,5 +18,8 @@ jobs:
           cache: npm
           cache-dependency-path: api/package.json
       - run: npm install
+      - run: npm test
       - run: node --check src/server.js
+      - run: node --check src/ai-providers.js
+      - run: node --check src/firebase-security.js
       - run: npm audit --omit=dev --audit-level=high
